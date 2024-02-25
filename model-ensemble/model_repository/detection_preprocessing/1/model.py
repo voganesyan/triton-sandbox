@@ -28,15 +28,13 @@ import io
 import json
 
 import numpy as np
-import torch
-import torchvision.transforms as transforms
+import cv2
 
 # triton_python_backend_utils is available in every Triton Python model. You
 # need to use this module to create inference requests and responses. It also
 # contains some utility functions for extracting information from model_config
 # and converting Triton input/output types to numpy types.
 import triton_python_backend_utils as pb_utils
-from PIL import Image
 
 
 class TritonPythonModel:
@@ -105,28 +103,21 @@ class TritonPythonModel:
                 request, "detection_preprocessing_input"
             )
 
-            def image_loader(image):
-                [h, w] = image.size
-                resize_w = (w // 32) * 32
-                resize_h = (h // 32) * 32
-
-                center_crop = resize_h if resize_w > resize_h else resize_w
-                loader = transforms.Compose(
-                    [transforms.CenterCrop(center_crop), transforms.ToTensor()]
-                )
-
-                im = loader(image)
-                im = torch.unsqueeze(im, 0)
-                return im.permute(0, 2, 3, 1)
-
             img = in_0.as_numpy()
 
-            image = Image.open(io.BytesIO(img.tobytes()))
-            img_out = image_loader(image)
-            img_out = np.array(img_out) * 255.0
+            image = cv2.imdecode(img, cv2.IMREAD_COLOR)
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            h, w = image.shape[:2]
+            small_w = (w // 32) * 32
+            small_h = (h // 32) * 32
+            min_side = min(small_w, small_h)
+            offset_w = (w - min_side) // 2
+            offset_h = (h - min_side) // 2
+            cropped_image = image[offset_h : (h - offset_h), offset_w : (w - offset_w)]
+            cropped_image = cropped_image[np.newaxis, ...]
 
             out_tensor_0 = pb_utils.Tensor(
-                "detection_preprocessing_output", img_out.astype(output0_dtype)
+                "detection_preprocessing_output", cropped_image.astype(output0_dtype)
             )
 
             # Create InferenceResponse. You can set an error here in case
