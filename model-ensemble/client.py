@@ -29,7 +29,7 @@ import tritonclient.grpc as grpcclient
 
 client = grpcclient.InferenceServerClient(url="localhost:8001")
 
-image_data = np.fromfile("frame.png", dtype="uint8")
+image_data = np.fromfile("test_data/img1.jpg", dtype="uint8")
 image_data = np.expand_dims(image_data, axis=0)
 
 input_tensors = [grpcclient.InferInput("input_image", image_data.shape, "UINT8")]
