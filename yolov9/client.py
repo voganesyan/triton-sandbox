@@ -5,15 +5,6 @@ import tritonclient.grpc as grpcclient
 MODEL_IMAGE_SIZE = (640, 640)
 
 
-def preprocess(img: np.ndarray) -> np.ndarray:
-    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img_resized = cv2.resize(img_rgb, MODEL_IMAGE_SIZE)
-
-    img_resized = img_resized / 255.0
-    input_image = img_resized.transpose(2,0,1)
-    input_tensor = input_image[np.newaxis, :, :, :].astype(np.float32)
-    return input_tensor
-
 def xywh2xyxy(x):
     # Convert bounding box (x, y, w, h) to bounding box (x1, y1, x2, y2)
     y = np.copy(x)
@@ -68,14 +59,14 @@ while True:
     if not ret:
         print('Cannot receive frame (stream end?). Exiting...')
         break
-
-    image_data = preprocess(frame)
-
-    input_tensors = [grpcclient.InferInput('images', image_data.shape, 'FP32')]
-    input_tensors[0].set_data_from_numpy(image_data)
-    results = client.infer(model_name='detection', inputs=input_tensors)
-    output_data = results.as_numpy('output0')
-    detections = postprocess(output_data, frame.shape)
+    image_data = frame
+    image_data = np.expand_dims(image_data, axis=0)
+    input_tensor = grpcclient.InferInput('input_image', image_data.shape, 'UINT8')
+    input_tensor.set_data_from_numpy(image_data)
+    
+    results = client.infer(model_name='ensemble_model', inputs=[input_tensor])
+    detections = results.as_numpy('detections')
+    detections = postprocess(detections, frame.shape)
     draw_detections(frame, detections)
     cv2.imshow('frame', frame)
     if cv2.waitKey(1) == ord('q'):
