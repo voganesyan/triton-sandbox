@@ -35,19 +35,12 @@ class TritonPythonModel:
 
         # Get OUTPUT0 configuration
         output0_config = pb_utils.get_output_config_by_name(
-            model_config, "detection_preprocessing_output"
-        )
-
-        output1_config = pb_utils.get_output_config_by_name(
-            model_config, "detection_preprocessing_params"
+            model_config, "detection_postprocessing_output"
         )
 
         # Convert Triton types to numpy types
         self.output0_dtype = pb_utils.triton_string_to_numpy(
             output0_config["data_type"]
-        )
-        self.output1_dtype = pb_utils.triton_string_to_numpy(
-            output1_config["data_type"]
         )
 
     def execute(self, requests):
@@ -70,37 +63,60 @@ class TritonPythonModel:
           be the same as `requests`
         """
 
+        output0_dtype = self.output0_dtype
+
         responses = []
+
+        MODEL_IMAGE_SIZE = (640, 640)
+
+        def xywh2xyxy(x):
+            # Convert bounding box (x, y, w, h) to bounding box (x1, y1, x2, y2)
+            y = np.copy(x)
+            y[..., 0] = x[..., 0] - x[..., 2] / 2
+            y[..., 1] = x[..., 1] - x[..., 3] / 2
+            y[..., 2] = x[..., 0] + x[..., 2] / 2
+            y[..., 3] = x[..., 1] + x[..., 3] / 2
+            return y 
+
+        def postprocess(outputs, image_shape, conf_thresold = 0.4, iou_threshold = 0.4):
+            predictions = np.squeeze(outputs).T
+            scores = np.max(predictions[:, 4:], axis=1)
+            predictions = predictions[scores > conf_thresold, :]
+            scores = scores[scores > conf_thresold]
+            class_ids = np.argmax(predictions[:, 4:], axis=1)
+
+            boxes = predictions[:, :4]
+            
+            input_shape = np.array([MODEL_IMAGE_SIZE[0], MODEL_IMAGE_SIZE[1], MODEL_IMAGE_SIZE[0], MODEL_IMAGE_SIZE[1]])
+            boxes = np.divide(boxes, input_shape, dtype=np.float32)
+            boxes *= np.array([image_shape[1], image_shape[0], image_shape[1], image_shape[0]])
+            indices = cv2.dnn.NMSBoxes(boxes, scores, conf_thresold, iou_threshold)
+            detections = [np.append(
+                xywh2xyxy(boxes[i]), [class_ids[i], scores[i]]) for i in indices] 
+            return np.array(detections)
 
         # Every Python backend must iterate over everyone of the requests
         # and create a pb_utils.InferenceResponse for each of them.
         for request in requests:
             # Get INPUT0
             in_0 = pb_utils.get_input_tensor_by_name(
-                request, "detection_preprocessing_input"
+                request, "detection_postprocessing_input"
+            )
+            proc_params = pb_utils.get_input_tensor_by_name(
+                request, "detection_postprocessing_params"
             )
 
-            img = in_0.as_numpy()
-            img = np.squeeze(img, axis=0)
-
-            img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            img_resized = cv2.resize(img_rgb, (640, 640))
-
-            img_resized = img_resized / 255.0
-            input_image = img_resized.transpose(2,0,1)
+            detections = np.squeeze(in_0.as_numpy(), axis=0)
+            proc_params = np.squeeze(proc_params.as_numpy(), axis=0)
+            detections = postprocess(detections, proc_params)
             
-            input_tensor = np.expand_dims(input_image, axis=0)
-            params = np.expand_dims(np.array(img.shape), axis=0)
-
+            input_tensor = np.expand_dims(detections, axis=0)
             out_tensor_0 = pb_utils.Tensor(
-                "detection_preprocessing_output", input_tensor.astype(self.output0_dtype)
-            )
-            out_tensor_1 = pb_utils.Tensor(
-                "detection_preprocessing_params", params.astype(self.output1_dtype)
+                "detection_postprocessing_output", input_tensor.astype(output0_dtype)
             )
 
             inference_response = pb_utils.InferenceResponse(
-                output_tensors=[out_tensor_0, out_tensor_1]
+                output_tensors=[out_tensor_0]
             )
             responses.append(inference_response)
 

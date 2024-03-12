@@ -29,6 +29,10 @@ ensemble_scheduling {
         key: "detection_preprocessing_output"
         value: "preprocessed_image"
       }
+      output_map {
+        key: "detection_preprocessing_params"
+        value: "preprocessing_params"
+      }
     },
     {
       model_name: "detection"
@@ -39,6 +43,22 @@ ensemble_scheduling {
       }
       output_map {
         key: "output0"
+        value: "raw_detections"
+      }
+    },
+    {
+      model_name: "detection_postprocessing"
+      model_version: -1
+      input_map {
+        key: "detection_postprocessing_input"
+        value: "raw_detections"
+      }
+      input_map {
+        key: "detection_postprocessing_params"
+        value: "preprocessing_params"
+      }
+      output_map {
+        key: "detection_postprocessing_output"
         value: "detections"
       }
     }
