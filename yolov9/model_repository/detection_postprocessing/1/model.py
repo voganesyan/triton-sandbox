@@ -1,11 +1,6 @@
 import json
 import numpy as np
 import cv2
-
-# triton_python_backend_utils is available in every Triton Python model. You
-# need to use this module to create inference requests and responses. It also
-# contains some utility functions for extracting information from model_config
-# and converting Triton input/output types to numpy types.
 import triton_python_backend_utils as pb_utils
 
 
@@ -71,12 +66,11 @@ class TritonPythonModel:
 
         def xywh2xyxy(x):
             # Convert bounding box (x, y, w, h) to bounding box (x1, y1, x2, y2)
-            y = np.copy(x)
-            y[..., 0] = x[..., 0] - x[..., 2] / 2
-            y[..., 1] = x[..., 1] - x[..., 3] / 2
-            y[..., 2] = x[..., 0] + x[..., 2] / 2
-            y[..., 3] = x[..., 1] + x[..., 3] / 2
-            return y 
+            x1 = x[0] - x[2] / 2
+            y1 = x[1] - x[3] / 2
+            x2 = x[0] + x[2] / 2
+            y2 = x[1] + x[3] / 2
+            return [x1, y1, x2, y2]
 
         def postprocess(outputs, image_shape, conf_thresold = 0.4, iou_threshold = 0.4):
             predictions = np.squeeze(outputs).T
@@ -86,10 +80,9 @@ class TritonPythonModel:
             class_ids = np.argmax(predictions[:, 4:], axis=1)
 
             boxes = predictions[:, :4]
-            
-            input_shape = np.array([MODEL_IMAGE_SIZE[0], MODEL_IMAGE_SIZE[1], MODEL_IMAGE_SIZE[0], MODEL_IMAGE_SIZE[1]])
-            boxes = np.divide(boxes, input_shape, dtype=np.float32)
-            boxes *= np.array([image_shape[1], image_shape[0], image_shape[1], image_shape[0]])
+            boxes = np.array(boxes)            
+            boxes[:, 0::2] *= image_shape[1] / MODEL_IMAGE_SIZE[1]
+            boxes[:, 1::2] *= image_shape[0] / MODEL_IMAGE_SIZE[0]
             indices = cv2.dnn.NMSBoxes(boxes, scores, conf_thresold, iou_threshold)
             detections = [np.append(
                 xywh2xyxy(boxes[i]), [class_ids[i], scores[i]]) for i in indices] 
