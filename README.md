@@ -2,7 +2,7 @@
 
 A sandbox repository for studying Triton Inference Server features.
 
-Navigate to `model-ensemble` folder.
+Navigate to `model-ensemble`/`yolov9` folder.
 ```bash
 cd model-ensemble
 ```
