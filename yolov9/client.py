@@ -6,8 +6,8 @@ from ocsort.ocsort import OCSort
 def draw_detections(img, detections: list, color = (0, 255, 0)):
     for detection in detections:
         x1, y1, x2, y2 = detection[:4].astype(int)
-        class_id = int(detection[4])
-        score = detection[5]
+        score = detection[4]
+        class_id = int(detection[5])
 
         cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
         cv2.putText(img, f'{class_id}: {score:.2f}', (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
