@@ -3,15 +3,22 @@ import numpy as np
 import tritonclient.grpc as grpcclient
 from ocsort.ocsort import OCSort
 
-def draw_detections(img, detections: list, color = (0, 255, 0)):
+def draw_detections(img, detections: list, color = (255, 255, 255)):
     for detection in detections:
         x1, y1, x2, y2 = detection[:4].astype(int)
         score = detection[4]
         class_id = int(detection[5])
 
-        cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
-        cv2.putText(img, f'{class_id}: {score:.2f}', (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
+        cv2.rectangle(img, (x1, y1), (x2, y2), color, 1)
+        cv2.putText(img, f'{class_id}: {score:.2f}', (x1, y2), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
 
+def draw_tracks(img, tracks: list, color = (0, 255, 0)):
+    for track in tracks:
+        x1, y1, x2, y2 = track[:4].astype(int)
+        track_id = str(int(track[4]))
+
+        cv2.rectangle(img, (x1, y1), (x2, y2), color, 1)
+        cv2.putText(img, track_id, (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
 
 client = grpcclient.InferenceServerClient(url='localhost:8001')
 
@@ -45,8 +52,9 @@ while True:
     results = client.infer(model_name='ensemble_model', inputs=[input_tensor])
     detections = results.as_numpy('detections')
     detections = np.squeeze(detections, axis=0)
-    res = tracker.update(detections, frame)
+    tracks = tracker.update(detections, frame)
     draw_detections(frame, detections)
+    draw_tracks(frame, tracks)
     cv2.imshow('frame', frame)
     if cv2.waitKey(1) == ord('q'):
         break
