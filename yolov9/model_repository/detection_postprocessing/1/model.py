@@ -62,6 +62,7 @@ class TritonPythonModel:
 
         responses = []
 
+        # TODO: Pass MODEL_IMAGE_SIZE in "detection_postprocessing_params" input
         MODEL_IMAGE_SIZE = (640, 640)
 
         def xywh2xyxy(x):
@@ -72,7 +73,7 @@ class TritonPythonModel:
             y2 = x[1] + x[3] / 2
             return [x1, y1, x2, y2]
 
-        def postprocess(outputs, image_shape, conf_thresold = 0.4, iou_threshold = 0.4):
+        def postprocess(outputs, image_shape, conf_thresold = 0.3, iou_threshold = 0.4):
             predictions = np.squeeze(outputs).T
             scores = np.max(predictions[:, 4:], axis=1)
             predictions = predictions[scores > conf_thresold, :]
