@@ -2,9 +2,9 @@
 
 A sandbox repository for studying Triton Inference Server features.
 
-Navigate to `model-ensemble`/`yolov9` folder.
+Navigate to `yolov9` folder.
 ```bash
-cd model-ensemble
+cd yolov9
 ```
 
 
@@ -16,7 +16,7 @@ docker run --gpus=all -it --shm-size=256m --rm    -p8000:8000 -p8001:8001 -p8002
 
 Install dependencies for our Python backend scripts.
 ```bash
-pip install opencv-python-headless
+pip install -r /models/tracking/1/ocsort/requirements.txt
 ```
 
 Launch Triton.
