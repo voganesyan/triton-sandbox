@@ -10,6 +10,11 @@ input [
 ]
 output [
   {
+    name: "detections"
+    data_type: TYPE_FP32
+    dims: [ -1, -1 ]
+  },
+  {
     name: "tracks"
     data_type: TYPE_FP32
     dims: [ -1, -1 ]

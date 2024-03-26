@@ -37,9 +37,9 @@ while True:
     input_tensor.set_data_from_numpy(image_data)
     
     results = client.infer(model_name='ensemble_model', inputs=[input_tensor])
-    # detections = results.as_numpy('detections')
-    # detections = np.squeeze(detections, axis=0)
-    # draw_detections(frame, detections)
+    detections = results.as_numpy('detections')
+    detections = np.squeeze(detections, axis=0)
+    draw_detections(frame, detections)
     tracks = results.as_numpy('tracks')
     tracks = np.squeeze(tracks, axis=0)
     draw_tracks(frame, tracks)
