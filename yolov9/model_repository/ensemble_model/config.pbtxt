@@ -27,15 +27,15 @@ ensemble_scheduling {
       model_name: "detection_preprocessing"
       model_version: -1
       input_map {
-        key: "detection_preprocessing_input"
+        key: "image"
         value: "input_image"
       }
       output_map {
-        key: "detection_preprocessing_output"
+        key: "preprocessed_image"
         value: "preprocessed_image"
       }
       output_map {
-        key: "detection_preprocessing_params"
+        key: "preprocessing_params"
         value: "preprocessing_params"
       }
     },
