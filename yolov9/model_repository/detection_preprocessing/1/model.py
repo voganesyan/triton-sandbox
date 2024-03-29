@@ -53,7 +53,6 @@ class TritonPythonModel:
                 output_tensors=[image_preprocessed, preprocessing_params]
             )
             responses.append(inference_response)
-
         return responses
 
     def finalize(self):

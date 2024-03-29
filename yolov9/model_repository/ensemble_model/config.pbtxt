@@ -71,7 +71,7 @@ ensemble_scheduling {
       model_name: "tracking"
       model_version: -1
       input_map {
-        key: "tracking_input"
+        key: "detections"
         value: "detections"
       }
       input_map {
@@ -79,7 +79,7 @@ ensemble_scheduling {
         value: "input_image"
       }
       output_map {
-        key: "tracking_output"
+        key: "tracks"
         value: "tracks"
       }
     }

@@ -3,7 +3,7 @@ backend: "python"
 max_batch_size: 32
 input [
 {
-    name: "tracking_input"
+    name: "detections"
     data_type: TYPE_FP32
     dims: [ -1, -1 ]
 },
@@ -16,7 +16,7 @@ input [
 
 output [
 {
-    name: "tracking_output"
+    name: "tracks"
     data_type: TYPE_FP32
     dims: [ -1, -1 ]
 }
