@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import tritonclient.grpc as grpcclient
+import time
 
 def draw_detections(img, detections: list, color = (255, 255, 255)):
     for detection in detections:
@@ -19,6 +20,9 @@ def draw_tracks(img, tracks: list, color = (0, 255, 0)):
         cv2.rectangle(img, (x1, y1), (x2, y2), color, 1)
         cv2.putText(img, track_id, (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
 
+def draw_fps(img, fps: int, color = (0, 0, 255)):
+    cv2.putText(img, f'{fps} FPS', (5, 25), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, 2)
+
 client = grpcclient.InferenceServerClient(url='localhost:8001')
 
 cap = cv2.VideoCapture('test_data/MOT17-04-SDP-raw.webm')
@@ -35,14 +39,18 @@ while True:
     image_data = np.expand_dims(image_data, axis=0)
     input_tensor = grpcclient.InferInput('input_image', image_data.shape, 'UINT8')
     input_tensor.set_data_from_numpy(image_data)
-    
+
+    start_time = time.time()
     results = client.infer(model_name='ensemble_model', inputs=[input_tensor])
+    fps = int(1.0 / (time.time() - start_time))
+
     detections = results.as_numpy('detections')
     detections = np.squeeze(detections, axis=0)
     draw_detections(frame, detections)
     tracks = results.as_numpy('tracks')
     tracks = np.squeeze(tracks, axis=0)
     draw_tracks(frame, tracks)
+    draw_fps(frame, fps)
     cv2.imshow('frame', frame)
     if cv2.waitKey(1) == ord('q'):
         break
