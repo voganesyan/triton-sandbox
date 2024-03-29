@@ -3,25 +3,32 @@ import numpy as np
 import tritonclient.grpc as grpcclient
 import time
 
-def draw_detections(img, detections: list, color = (255, 255, 255)):
+
+def draw_detections(img, detections: list, color=(255, 255, 255)):
     for detection in detections:
         x1, y1, x2, y2 = detection[:4].astype(int)
         score = detection[4]
         class_id = int(detection[5])
 
         cv2.rectangle(img, (x1, y1), (x2, y2), color, 1)
-        cv2.putText(img, f'{class_id}: {score:.2f}', (x1, y2), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
+        cv2.putText(img, f'{class_id}: {score:.2f}', (x1, y2),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
 
-def draw_tracks(img, tracks: list, color = (0, 255, 0)):
+
+def draw_tracks(img, tracks: list, color=(0, 255, 0)):
     for track in tracks:
         x1, y1, x2, y2 = track[:4].astype(int)
         track_id = str(int(track[4]))
 
         cv2.rectangle(img, (x1, y1), (x2, y2), color, 1)
-        cv2.putText(img, track_id, (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
+        cv2.putText(img, track_id, (x1, y1),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
 
-def draw_fps(img, fps: int, color = (0, 0, 255)):
-    cv2.putText(img, f'{fps} FPS', (5, 25), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, 2)
+
+def draw_fps(img, fps: int, color=(0, 0, 255)):
+    cv2.putText(img, f'{fps} FPS', (5, 25),
+                cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, 2)
+
 
 client = grpcclient.InferenceServerClient(url='localhost:8001')
 
@@ -37,7 +44,8 @@ while True:
         break
     image_data = frame
     image_data = np.expand_dims(image_data, axis=0)
-    input_tensor = grpcclient.InferInput('input_image', image_data.shape, 'UINT8')
+    input_tensor = grpcclient.InferInput('input_image',
+                                         image_data.shape, 'UINT8')
     input_tensor.set_data_from_numpy(image_data)
 
     start_time = time.time()
@@ -57,4 +65,3 @@ while True:
 
 cap.release()
 cv2.destroyAllWindows()
-
