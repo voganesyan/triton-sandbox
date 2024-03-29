@@ -55,15 +55,15 @@ ensemble_scheduling {
       model_name: "detection_postprocessing"
       model_version: -1
       input_map {
-        key: "detection_postprocessing_input"
+        key: "detections"
         value: "raw_detections"
       }
       input_map {
-        key: "detection_postprocessing_params"
+        key: "postprocessing_params"
         value: "preprocessing_params"
       }
       output_map {
-        key: "detection_postprocessing_output"
+        key: "processed_detections"
         value: "detections"
       }
     },
