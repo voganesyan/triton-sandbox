@@ -49,7 +49,7 @@ while True:
     input_tensor.set_data_from_numpy(image_data)
 
     start_time = time.time()
-    results = client.infer(model_name='ensemble_model', inputs=[input_tensor])
+    results = client.infer(model_name='tracking_by_detection', inputs=[input_tensor])
     fps = int(1.0 / (time.time() - start_time))
 
     detections = results.as_numpy('detections')
