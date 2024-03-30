@@ -35,7 +35,11 @@ def draw_fps(img, fps: int, color=(0, 0, 255)):
 def update_track_histories(tracks, track_histories):
     for track in tracks:
         x1, y1, x2, y2, id = track[:5].astype(int)
-        track_histories[id].append([x1, y1, x2, y2])
+        if all(v == -1 for v in [x1, y1, x2, y2]):
+            if id in track_histories:
+                track_histories.pop(id)
+        else:
+            track_histories[id].append([x1, y1, x2, y2])
 
 
 client = grpcclient.InferenceServerClient(url='localhost:8001')

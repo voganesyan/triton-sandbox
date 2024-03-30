@@ -266,7 +266,10 @@ class OCSort(BaseTracker):
                 to_del.append(t)
         trks = np.ma.compress_rows(np.ma.masked_invalid(trks))
         for t in reversed(to_del):
-            self.active_tracks.pop(t)
+            removed_trk = self.active_tracks.pop(t)
+            ret.append(
+                np.array((-1, -1, -1, -1, removed_trk.id + 1, -1, -1, -1).reshape(1, -1))
+            )
 
         velocities = np.array(
             [
@@ -371,14 +374,15 @@ class OCSort(BaseTracker):
             ):
                 # +1 as MOT benchmark requires positive
                 ret.append(
-                    np.concatenate((d, [trk.id + 1], [trk.conf], [trk.cls], [trk.det_ind])).reshape(
-                        1, -1
-                    )
+                    np.concatenate((d, [trk.id + 1], [trk.conf], [trk.cls], [trk.det_ind])).reshape(1, -1)
                 )
             i -= 1
             # remove dead tracklet
             if trk.time_since_update > self.max_age:
-                self.active_tracks.pop(i)
+                removed_trk = self.active_tracks.pop(i)
+                ret.append(
+                    np.array((-1, -1, -1, -1, removed_trk.id + 1, -1, -1, -1)).reshape(1, -1)
+                )
         if len(ret) > 0:
             return np.concatenate(ret)
         return np.array([])
