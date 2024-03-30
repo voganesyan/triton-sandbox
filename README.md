@@ -2,9 +2,9 @@
 
 A sandbox repository for studying Triton Inference Server features.
 
-Navigate to `yolov9` folder.
+Navigate to `tracking-by-detection` folder.
 ```bash
-cd yolov9
+cd tracking-by-detection
 ```
 
 
