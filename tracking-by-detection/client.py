@@ -50,7 +50,7 @@ if not cap.isOpened():
     exit()
 
 track_histories = defaultdict(list)
-
+is_sequence_start = True
 while True:
     ret, frame = cap.read()
     if not ret:
@@ -63,7 +63,8 @@ while True:
     input_tensor.set_data_from_numpy(image_data)
 
     start_time = time.time()
-    results = client.infer(model_name='tracking_by_detection', inputs=[input_tensor])
+    results = client.infer(model_name='tracking_by_detection', inputs=[input_tensor],
+                           sequence_id=1, sequence_start=is_sequence_start)
     fps = int(1.0 / (time.time() - start_time))
 
     detections = results.as_numpy('detections')
@@ -74,6 +75,7 @@ while True:
     update_track_histories(tracks, track_histories)
     draw_track_histories(frame, track_histories)
     draw_fps(frame, fps)
+    is_sequence_start = False
     cv2.imshow('frame', frame)
     if cv2.waitKey(1) == ord('q'):
         break
