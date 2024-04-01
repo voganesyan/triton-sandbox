@@ -71,9 +71,7 @@ class KalmanBoxTracker(object):
     This class represents the internal state of individual tracked objects observed as bbox.
     """
 
-    count = 0
-
-    def __init__(self, bbox, cls, det_ind, delta_t=3):
+    def __init__(self, id, bbox, cls, det_ind, delta_t=3):
         """
         Initialises a tracker using initial bounding box.
 
@@ -111,8 +109,7 @@ class KalmanBoxTracker(object):
 
         self.kf.x[:4] = convert_bbox_to_z(bbox)
         self.time_since_update = 0
-        self.id = KalmanBoxTracker.count
-        KalmanBoxTracker.count += 1
+        self.id = id
         self.history = deque([], maxlen=50)
         self.hits = 0
         self.hit_streak = 0
@@ -217,7 +214,7 @@ class OCSort(BaseTracker):
         self.asso_func = get_asso_func(asso_func)
         self.inertia = inertia
         self.use_byte = use_byte
-        KalmanBoxTracker.count = 0
+        self.count = 0
 
     @PerClassDecorator
     def update(self, dets, img, embs=None):
@@ -357,7 +354,8 @@ class OCSort(BaseTracker):
 
         # create and initialise new trackers for unmatched detections
         for i in unmatched_dets:
-            trk = KalmanBoxTracker(dets[i, :5], dets[i, 5], dets[i, 6], delta_t=self.delta_t)
+            self.count += 1
+            trk = KalmanBoxTracker(self.count, dets[i, :5], dets[i, 5], dets[i, 6], delta_t=self.delta_t)
             self.active_tracks.append(trk)
         i = len(self.active_tracks)
         for trk in reversed(self.active_tracks):
