@@ -27,5 +27,5 @@ tritonserver --model-repository=/models
 ## Running Client
 Run the client application.
 ```bash
-python client.py
+python client.py --video test_data/MOT17-04-SDP-raw.webm
 ```

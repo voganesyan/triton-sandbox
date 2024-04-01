@@ -3,6 +3,7 @@ import numpy as np
 import tritonclient.grpc as grpcclient
 from collections import defaultdict
 import time
+import argparse
 
 
 def draw_detections(img, detections: list, color=(255, 255, 255)):
@@ -28,10 +29,12 @@ def draw_track_histories(img, track_histories: list, color=(0, 255, 0)):
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
     img = cv2.polylines(img, track_lines, False, color, 1)
 
+
 def draw_fps(img, fps: int, color=(0, 0, 255)):
     cv2.putText(img, f'{fps} FPS', (5, 25),
                 cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, 2)
-    
+
+
 def update_track_histories(tracks, track_histories):
     for track in tracks:
         x1, y1, x2, y2, id = track[:5].astype(int)
@@ -42,43 +45,57 @@ def update_track_histories(tracks, track_histories):
             track_histories[id].append([x1, y1, x2, y2])
 
 
-client = grpcclient.InferenceServerClient(url='localhost:8001')
+def main():
+    parser = argparse.ArgumentParser(
+        description='Remove Transpose layers from ONNX model.')
+    parser.add_argument('--video',
+                        help='Input video', required=True)
+    args = parser.parse_args()
 
-cap = cv2.VideoCapture('test_data/MOT17-04-SDP-raw.webm')
-if not cap.isOpened():
-    print('Cannot open video')
-    exit()
+    client = grpcclient.InferenceServerClient(url='localhost:8001')
 
-track_histories = defaultdict(list)
-is_sequence_start = True
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        print('Cannot receive frame (stream end?). Exiting...')
-        break
-    image_data = frame
-    image_data = np.expand_dims(image_data, axis=0)
-    input_tensor = grpcclient.InferInput('input_image',
-                                         image_data.shape, 'UINT8')
-    input_tensor.set_data_from_numpy(image_data)
+    cap = cv2.VideoCapture(args.video)
+    if not cap.isOpened():
+        print('Cannot open video')
+        exit()
 
-    start_time = time.time()
-    results = client.infer(model_name='tracking_by_detection', inputs=[input_tensor],
-                           sequence_id=1, sequence_start=is_sequence_start)
-    fps = int(1.0 / (time.time() - start_time))
+    track_histories = defaultdict(list)
+    is_sequence_start = True
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            print('Cannot receive frame (stream end?). Exiting...')
+            break
+        image_data = frame
+        image_data = np.expand_dims(image_data, axis=0)
+        input_tensor = grpcclient.InferInput(
+            'input_image', image_data.shape, 'UINT8')
+        input_tensor.set_data_from_numpy(image_data)
 
-    detections = results.as_numpy('detections')
-    detections = np.squeeze(detections, axis=0)
-    draw_detections(frame, detections)
-    tracks = results.as_numpy('tracks')
-    tracks = np.squeeze(tracks, axis=0)
-    update_track_histories(tracks, track_histories)
-    draw_track_histories(frame, track_histories)
-    draw_fps(frame, fps)
-    is_sequence_start = False
-    cv2.imshow('frame', frame)
-    if cv2.waitKey(1) == ord('q'):
-        break
+        start_time = time.time()
+        results = client.infer(
+            model_name='tracking_by_detection',
+            inputs=[input_tensor],
+            sequence_id=1,
+            sequence_start=is_sequence_start)
+        fps = int(1.0 / (time.time() - start_time))
 
-cap.release()
-cv2.destroyAllWindows()
+        detections = results.as_numpy('detections')
+        detections = np.squeeze(detections, axis=0)
+        draw_detections(frame, detections)
+        tracks = results.as_numpy('tracks')
+        tracks = np.squeeze(tracks, axis=0)
+        update_track_histories(tracks, track_histories)
+        draw_track_histories(frame, track_histories)
+        draw_fps(frame, fps)
+        is_sequence_start = False
+        cv2.imshow('frame', frame)
+        if cv2.waitKey(1) == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+
+if __name__ == '__main__':
+    main()
