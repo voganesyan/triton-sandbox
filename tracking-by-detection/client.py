@@ -59,10 +59,12 @@ def main():
         print('Cannot open video')
         exit()
 
+    frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     track_histories = defaultdict(list)
-    is_sequence_start = True
     while True:
+        frame_number = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
         ret, frame = cap.read()
+
         if not ret:
             print('Cannot receive frame (stream end?). Exiting...')
             break
@@ -76,8 +78,9 @@ def main():
         results = client.infer(
             model_name='tracking_by_detection',
             inputs=[input_tensor],
-            sequence_id=1,
-            sequence_start=is_sequence_start)
+            sequence_id=id(cap),
+            sequence_start=(frame_number == 0),
+            sequence_end=(frame_number == frame_count))
         fps = int(1.0 / (time.time() - start_time))
 
         detections = results.as_numpy('detections')
@@ -88,7 +91,6 @@ def main():
         update_track_histories(tracks, track_histories)
         draw_track_histories(frame, track_histories)
         draw_fps(frame, fps)
-        is_sequence_start = False
         cv2.imshow('frame', frame)
         if cv2.waitKey(1) == ord('q'):
             break
