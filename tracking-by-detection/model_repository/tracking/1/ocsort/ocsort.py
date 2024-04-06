@@ -12,7 +12,6 @@ from .association import associate, linear_assignment
 from .iou import get_asso_func
 from .iou import run_asso_func
 from .basetracker import BaseTracker
-from .perclassdecorator import PerClassDecorator
 
 
 def k_previous_obs(observations, cur_age, k):
@@ -216,7 +215,6 @@ class OCSort(BaseTracker):
         self.use_byte = use_byte
         self.count = 0
 
-    @PerClassDecorator
     def update(self, dets, img, embs=None):
         """
         Params:
