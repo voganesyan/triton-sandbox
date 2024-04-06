@@ -10,6 +10,7 @@ All stages of the algorithm are implemented as Triton models:
  - Detection Postprocessing (Python backend);
  - Tracking (Python backend).
 
+![Demo](https://github.com/voganesyan/triton-sandbox/blob/main/demo_gif/tracking-by-detection.gif)
 
 Navigate to `tracking-by-detection` folder.
 ```bash
