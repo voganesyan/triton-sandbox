@@ -27,7 +27,6 @@ class TritonPythonModel:
             seq_end = seq_end.as_numpy()[0][0]
 
             if seq_start:
-                print('SS ', seq_id, flush=True)
                 self.trackers[seq_id] = OCSort(
                     per_class=True,
                     det_thresh=0,
@@ -40,7 +39,6 @@ class TritonPythonModel:
                     use_byte=False,
                 )
             if seq_end:
-                print('SE ', seq_id, flush=True)
                 self.trackers.pop(seq_id)
 
             detections = pb_utils.get_input_tensor_by_name(request, 'detections')
