@@ -5,10 +5,12 @@ A sandbox repository for studying Triton Inference Server features.
 ## Tracking by Detection
 
 All stages of the algorithm are implemented as Triton models:
- - Detection Preprocessing (Python backend);
- - Detection (onnxruntime backend);
- - Detection Postprocessing (Python backend);
- - Tracking (Python backend).
+ - **Detection Preprocessing** (Python backend);
+ - **Detection** (onnxruntime backend);
+ - **Detection Postprocessing** (Python backend);
+ - **Tracking** (Python backend).
+
+The **Tracking** model is [stateful](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/user_guide/architecture.html#stateful-models) which allows it to differentiate inference requests from multiple clients using provided `CORRELATION ID`.
 
 ![Demo](https://github.com/voganesyan/triton-sandbox/blob/main/demo_gif/tracking-by-detection.gif)
 
