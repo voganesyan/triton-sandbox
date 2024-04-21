@@ -10,6 +10,8 @@ All stages of the algorithm are implemented as Triton models:
  - **Detection Postprocessing** (Python backend);
  - **Tracking** (Python backend).
 
+The **Detection** model is based on [YOLOv9-c](https://github.com/WongKinYiu/yolov9) detector.
+
 The **Tracking** model is [stateful](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/user_guide/architecture.html#stateful-models) which allows it to differentiate inference requests from multiple clients using provided `CORRELATION ID`.
 
 ![Demo](https://github.com/voganesyan/triton-sandbox/blob/main/demo_gif/tracking-by-detection.gif)
@@ -40,3 +42,7 @@ Run the client application.
 ```bash
 python client.py --video test_data/MOT17-04-SDP-raw.webm
 ```
+
+## References
+- [YOLOv9](https://github.com/WongKinYiu/yolov9)
+- [BoxMOT](https://github.com/mikel-brostrom/yolo_tracking)
