@@ -40,6 +40,10 @@ class TritonPythonModel:
             boxes = np.array(boxes)            
             boxes[:, 0::2] *= image_shape[1] / MODEL_IMAGE_SIZE[1]
             boxes[:, 1::2] *= image_shape[0] / MODEL_IMAGE_SIZE[0]
+
+            if len(boxes) == 0:
+                return np.empty([0, 6])
+            
             indices = cv2.dnn.NMSBoxes(boxes, scores, conf_thresold, iou_threshold)
             detections = [np.append(
                 xywh2xyxy(boxes[i]), [scores[i], class_ids[i]]) for i in indices] 
