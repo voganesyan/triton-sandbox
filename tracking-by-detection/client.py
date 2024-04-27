@@ -43,6 +43,28 @@ def update_track_histories(tracks, track_histories):
                 track_histories.pop(id)
         else:
             track_histories[id].append([x1, y1, x2, y2])
+            
+
+zone = []
+
+def draw_zone(img, color=(0, 255, 255)):
+    if len(zone) > 1:
+        cv2.drawContours(img, np.array([zone]), 0, color, 2)
+
+
+# mouse callback function
+def mouse_callback(event, x, y, flags, param):
+    mouse_callback.is_pressed =\
+        getattr(mouse_callback, 'is_pressed', False)
+
+    if event == cv2.EVENT_LBUTTONDOWN:
+        mouse_callback.is_pressed = True
+        zone.append((x, y))
+    elif event == cv2.EVENT_MOUSEMOVE:
+        if mouse_callback.is_pressed == True:
+            zone.append((x, y))
+    elif event == cv2.EVENT_LBUTTONUP:
+        mouse_callback.is_pressed = False
 
 
 def main():
@@ -55,6 +77,9 @@ def main():
     client = grpcclient.InferenceServerClient(url='localhost:8001')
 
     cap = cv2.VideoCapture(args.video)
+    cv2.namedWindow('frame')
+    cv2.setMouseCallback('frame', mouse_callback)
+    
     if not cap.isOpened():
         print('Cannot open video')
         exit()
