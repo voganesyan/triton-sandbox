@@ -44,7 +44,10 @@ class TritonPythonModel:
             
             if 'zone' in parameters:
                 zone = list(ast.literal_eval(parameters['zone']))
-                self.zones[seq_id] = zone
+                if len(zone) > 2:
+                    self.zones[seq_id] = zone
+                else:
+                    self.zones.pop(seq_id, None)
 
             if seq_start:
                 self.trackers[seq_id] = OCSort(

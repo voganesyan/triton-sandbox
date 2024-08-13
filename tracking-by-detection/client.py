@@ -69,6 +69,7 @@ def mouse_callback(event, x, y, flags, param):
     elif event == cv2.EVENT_LBUTTONUP:
         mouse_callback.is_pressed = False
         should_send_zone = True
+        
 
 
 def main():
