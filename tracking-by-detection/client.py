@@ -59,6 +59,7 @@ def mouse_callback(event, x, y, flags, param):
 
     if event == cv2.EVENT_LBUTTONDOWN:
         mouse_callback.is_pressed = True
+        zone.clear()
         zone.append((x, y))
     elif event == cv2.EVENT_MOUSEMOVE:
         if mouse_callback.is_pressed == True:
@@ -116,6 +117,7 @@ def main():
         update_track_histories(tracks, track_histories)
         draw_track_histories(frame, track_histories)
         draw_fps(frame, fps)
+        draw_zone(frame, (0, 255, 255))
         cv2.imshow('frame', frame)
         if cv2.waitKey(1) == ord('q'):
             break
