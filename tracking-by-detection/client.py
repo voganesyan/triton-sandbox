@@ -46,6 +46,7 @@ def update_track_histories(tracks, track_histories):
             
 
 zone = []
+should_send_zone = False
 
 def draw_zone(img, color=(0, 255, 255)):
     if len(zone) > 1:
@@ -54,6 +55,7 @@ def draw_zone(img, color=(0, 255, 255)):
 
 # mouse callback function
 def mouse_callback(event, x, y, flags, param):
+    global zone, should_send_zone
     mouse_callback.is_pressed =\
         getattr(mouse_callback, 'is_pressed', False)
 
@@ -66,6 +68,7 @@ def mouse_callback(event, x, y, flags, param):
             zone.append((x, y))
     elif event == cv2.EVENT_LBUTTONUP:
         mouse_callback.is_pressed = False
+        should_send_zone = True
 
 
 def main():
@@ -101,12 +104,21 @@ def main():
         input_tensor.set_data_from_numpy(image_data)
 
         start_time = time.time()
+
+        parameters = None
+        global zone, should_send_zone
+        if should_send_zone:
+            parameters = {'zone': str(zone).strip('[]')}
+            print(parameters)
+            should_send_zone = False
+
         results = client.infer(
             model_name='tracking_by_detection',
             inputs=[input_tensor],
             sequence_id=id(cap),
             sequence_start=(frame_number == 0),
-            sequence_end=(frame_number == frame_count))
+            sequence_end=(frame_number == frame_count),
+            parameters=parameters)
         fps = int(1.0 / (time.time() - start_time))
 
         detections = results.as_numpy('detections')

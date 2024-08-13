@@ -2,6 +2,7 @@ import json
 import numpy as np
 from ocsort.ocsort import OCSort
 import triton_python_backend_utils as pb_utils
+import ast
 
 
 class TritonPythonModel:
@@ -15,6 +16,7 @@ class TritonPythonModel:
             tracks['data_type']
         )
         self.trackers = {}
+        self.zones = {}
 
     def execute(self, requests):
         responses = []
@@ -25,6 +27,12 @@ class TritonPythonModel:
             seq_id = seq_id.as_numpy()[0][0]
             seq_end = pb_utils.get_input_tensor_by_name(request, "END")
             seq_end = seq_end.as_numpy()[0][0]
+
+            parameters = ast.literal_eval(request.parameters())
+            
+            if 'zone' in parameters:
+                zone = list(ast.literal_eval(parameters['zone']))
+                self.zones[seq_id] = zone
 
             if seq_start:
                 self.trackers[seq_id] = OCSort(
