@@ -2,7 +2,19 @@ import json
 import numpy as np
 from ocsort.ocsort import OCSort
 import triton_python_backend_utils as pb_utils
+import cv2
 import ast
+
+
+def filter_detections_outsize_zone(detections, zone):
+    filtered_detections = []
+    for det in detections:
+        center = ((det[0] + det[2]) // 2, det[3])
+        if cv2.pointPolygonTest(np.array(zone), center, True) > 0:
+            filtered_detections.append(det)
+    filtered_detections = np.array(filtered_detections)\
+          if len(filtered_detections) > 0 else np.empty((0, 6))
+    return filtered_detections
 
 
 class TritonPythonModel:
@@ -52,6 +64,10 @@ class TritonPythonModel:
             detections = pb_utils.get_input_tensor_by_name(request, 'detections')
             frame = pb_utils.get_input_tensor_by_name(request, 'frame')
             detections = np.squeeze(detections.as_numpy(), axis=0)
+
+            if seq_id in self.zones:
+                zone = self.zones[seq_id]
+                detections = filter_detections_outsize_zone(detections, zone)
             frame = np.squeeze(frame.as_numpy(), axis=0)
 
             tracks = self.trackers[seq_id].update(detections, frame)
